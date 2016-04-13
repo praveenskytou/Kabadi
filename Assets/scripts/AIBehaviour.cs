@@ -21,6 +21,7 @@ public class AIBehaviour : MonoBehaviour
         instance = this;
         playerRef = GameObject.FindGameObjectWithTag("Player");
     }
+
 	// Use this for initialization
 	void Start ()
     {
@@ -37,6 +38,7 @@ public class AIBehaviour : MonoBehaviour
     {
 
     }
+
 	// Update is called once per frame
 	void Update ()
     {
@@ -44,14 +46,11 @@ public class AIBehaviour : MonoBehaviour
         switch(aiStates)
         {
             case AIStates.idle:
-
                 Idle();
                 break;
 
             case AIStates.attack:
-
                 Attack();
-
                 break;
         }
 	}
