@@ -11,12 +11,6 @@ public class Player : MonoBehaviour {
 	public float  leftDistance, centerDistance, rightDistance;
 	public float enemyStartPosZ, rideDist, enemyMoveSpeed;
 
-	// Use this for initialization
-	void Start () 
-	{
-	
-	}
-	
 
 	void Update () 
 	{
