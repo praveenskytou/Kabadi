@@ -21,13 +21,15 @@ public class AIBehaviour : MonoBehaviour
     private Vector3 startPosition;
     public float aiMovementTriggerDistance, aiSafeDistance;
     public float aiMoveSpeed;
-    private float moveStep;
+    public float moveStep;
+    private Vector3 prevPlayerPosition;
 
     void Awake()
     {
         instance = this;
         playerRef = GameObject.FindGameObjectWithTag("Player");
         startPosition = this.transform.position;
+        prevPlayerPosition = playerRef.transform.position;
     }
 
 	// Use this for initialization
@@ -54,18 +56,19 @@ public class AIBehaviour : MonoBehaviour
             }
             else
             {
-                moveStep = aiMoveSpeed * Time.deltaTime;
-                transform.position = Vector3.MoveTowards(new Vector3(transform.position.x,0,0), new Vector3(playerRef.transform.position.x, 0, 0), moveStep);
+
+                if (prevPlayerPosition != playerRef.transform.position)
+                {
+                    //move away from player to maintain the safe dist
+                    moveStep = aiMoveSpeed * Time.deltaTime;
+                    transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x + aiSafeDistance/2, transform.position.y + aiSafeDistance/2, 0), moveStep);
+
+                    prevPlayerPosition = playerRef.transform.position;
+                }
+
             }
 
         }
-        //else
-        //if(Vector2.Distance(playerRef.transform.position, this.transform.position) < aiSafeDistance)
-        //{
-        //    moveStep = aiMoveSpeed * Time.deltaTime;
-        //    transform.position = Vector3.MoveTowards(new Vector3(transform.position.x,0,0), new Vector3(playerRef.transform.position.x, 0, 0), moveStep);
-        //}
-        //else
 
         //retreat
         if (Vector2.Distance(playerRef.transform.position, this.transform.position) > aiMovementTriggerDistance ) 
