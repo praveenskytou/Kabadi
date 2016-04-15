@@ -29,4 +29,15 @@ public class PlayerMovement : MonoBehaviour
 		currentMovementValueY = CrossPlatformInputManager.GetAxis ("Vertical") * moveSpeed * Time.deltaTime;
 		this.transform.Translate(currentMovementValueX, currentMovementValueY,0);
 	}
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if(other.gameObject.name == "BaulkLine")
+        {
+            Debug.Log("BaulkLine has been touched");
+        }
+
+        //Debug.Log("Other collider : " + other.gameObject.name);
+    }
+
 }
