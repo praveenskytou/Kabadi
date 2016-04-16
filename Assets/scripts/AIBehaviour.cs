@@ -9,6 +9,12 @@ public enum AIStates
     defence
 }
 
+public enum AIEvadeDirection
+{
+    left,
+    right
+}
+
 public class AIBehaviour : MonoBehaviour
 {
 
@@ -20,9 +26,16 @@ public class AIBehaviour : MonoBehaviour
     //ai params
     private Vector3 startPosition;
     public float aiMovementTriggerDistance, aiSafeDistance;
-    public float aiMoveSpeed;
-    public float moveStep;
+    public float aiVerticalMoveSpeed, aiHorizontalMoveSpeed;
+    private float xpos, ypos;
     private Vector3 prevPlayerPosition;
+    private Vector3 t_prevMovePosition, t_nextMovePosition;
+    public bool isTouchingEndLine_Back ,isTouchingLobby_Left, isTouchingLobby_Right;
+    public AIEvadeDirection currentEvadeDirection;
+
+    //misc params
+    private float moveStep;
+
 
     void Awake()
     {
@@ -30,6 +43,7 @@ public class AIBehaviour : MonoBehaviour
         playerRef = GameObject.FindGameObjectWithTag("Player");
         startPosition = this.transform.position;
         prevPlayerPosition = playerRef.transform.position;
+
     }
 
 	// Use this for initialization
@@ -38,10 +52,6 @@ public class AIBehaviour : MonoBehaviour
 	
 	}
 
-
-
-	
-
     void Idle()
     {
 
@@ -49,42 +59,187 @@ public class AIBehaviour : MonoBehaviour
 
     void Attack()
     {
-        if(Vector2.Distance(playerRef.transform.position, this.transform.position) < aiMovementTriggerDistance )
+
+        //set an evade move direction
+        ////Find which the side the ai stands wrt player
+        ////Then find wthr that dir has space to traverse
+        if (transform.position.x > playerRef.transform.position.x)
+            currentEvadeDirection = AIEvadeDirection.right;
+        else
+        if (transform.position.x < playerRef.transform.position.x)
+            currentEvadeDirection = AIEvadeDirection.left;
+
+        //move towards player
+        if (Vector2.Distance(playerRef.transform.position, this.transform.position) > aiSafeDistance)
         {
+            moveStep = aiVerticalMoveSpeed * Time.deltaTime;
 
-            if (Vector2.Distance(playerRef.transform.position, this.transform.position) > aiSafeDistance)
-            {
-                moveStep = aiMoveSpeed * Time.deltaTime;
-                transform.position = Vector3.MoveTowards(transform.position, playerRef.transform.position, moveStep);
-            }
-            else
+            xpos = playerRef.transform.position.x + 0.2f;
+            ypos = playerRef.transform.position.y + aiSafeDistance;
+
+            //transform.position = Vector3.MoveTowards(transform.position, playerRef.transform.position, moveStep);
+        }
+        else// if AI is inside the safe distance
+        {
+            //if in close proximity
+            if (prevPlayerPosition != playerRef.transform.position)//only if player moves
             {
 
-                if (prevPlayerPosition != playerRef.transform.position)
+
+                moveStep = aiVerticalMoveSpeed * Time.deltaTime;
+
+                //CHECK WTHR THE AI IS WITHIN THE ARENA BOUNDS
+                if (isTouchingEndLine_Back)//stop y incr
                 {
-                    //move away from player to maintain the safe dist
-                    moveStep = aiMoveSpeed * Time.deltaTime;
-                    transform.position = Vector3.MoveTowards(transform.position, new Vector3(transform.position.x + aiSafeDistance/2, transform.position.y + aiSafeDistance/2, 0), moveStep);
 
-                    prevPlayerPosition = playerRef.transform.position;
+                    ypos = transform.position.y;
+
+
+                    //if the lobbyline are being touched, then
+                    if (isTouchingLobby_Left)//stop x decr
+                    {
+
+                        if (currentEvadeDirection == AIEvadeDirection.right)
+                            xpos = transform.position.x + aiSafeDistance / 2;
+                        else
+                        if (currentEvadeDirection == AIEvadeDirection.left)
+                            xpos = transform.position.x;
+
+                    }
+                    else
+                    if (isTouchingLobby_Right)//stop x incr
+                    {
+
+                        if (currentEvadeDirection == AIEvadeDirection.right)
+                            xpos = transform.position.x;
+                        else
+                        if (currentEvadeDirection == AIEvadeDirection.left)
+                            xpos = transform.position.x + aiSafeDistance / 2;
+
+                    }
+                    else //if not touching lobbies
+                    {
+                        if (currentEvadeDirection == AIEvadeDirection.right)
+                            xpos = transform.position.x + aiSafeDistance / 2;
+                        else
+                        if (currentEvadeDirection == AIEvadeDirection.left)
+                            xpos = transform.position.x - aiSafeDistance / 2;
+                    }
+
+                   // Debug.Log("Touching endlines");
+
+                }   // if (isTouchingEndLine_Back)
+                else
+                if (isTouchingLobby_Left)//stop x decr
+                {
+
+                    if (currentEvadeDirection == AIEvadeDirection.right)
+                        xpos = transform.position.x + aiSafeDistance / 2;
+                    else
+                    if (currentEvadeDirection == AIEvadeDirection.left)
+                        xpos = transform.position.x;
+
+                    ypos = transform.position.x + aiSafeDistance / 2;
+
+                  //  Debug.Log("Touching left lobby");
+                }
+                else
+                if (isTouchingLobby_Right)//stop x incr
+                {
+
+                    if (currentEvadeDirection == AIEvadeDirection.right)
+                        xpos = transform.position.x;
+                    else
+                    if (currentEvadeDirection == AIEvadeDirection.left)
+                        xpos = transform.position.x + aiSafeDistance / 2;
+
+                    ypos = transform.position.x + aiSafeDistance ;
+
+                   // Debug.Log("Touching right lobby");
                 }
 
+                //if within the arena bounds
+                if (!isTouchingLobby_Right  &&  !isTouchingLobby_Left && !isTouchingEndLine_Back)
+                {
+
+                    if (currentEvadeDirection == AIEvadeDirection.right)
+                        xpos = transform.position.x ;
+                    else
+                    if (currentEvadeDirection == AIEvadeDirection.left)
+                        xpos = transform.position.x - 0.2f;
+
+                    ypos = playerRef.transform.position.y + aiSafeDistance;
+
+                  //  Debug.Log("within bounds");
+
+                }
             }
 
         }
 
-        //retreat
-        if (Vector2.Distance(playerRef.transform.position, this.transform.position) > aiMovementTriggerDistance ) 
-        {
-            moveStep = aiMoveSpeed * Time.deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, startPosition, moveStep);
-        }
+        transform.position = Vector3.MoveTowards(transform.position, new Vector2(xpos, ypos), moveStep);
+        prevPlayerPosition = playerRef.transform.position;
+        t_prevMovePosition = t_nextMovePosition;
+
+        ////retreat
+        //if (Vector2.Distance(playerRef.transform.position, this.transform.position) > aiMovementTriggerDistance ) 
+        //{
+        //    moveStep = aiVerticalMoveSpeed * Time.deltaTime;
+        //    transform.position = Vector3.MoveTowards(transform.position, startPosition, moveStep);
+        //}
+
+        Debug.Log("ai X, p X : " + transform.position.x + " ::  " + playerRef.transform.position.x);
     }
 
-	// Update is called once per frame
-	void Update ()
+
+    void OnTriggerStay2D(Collider2D other)
     {
-	
+        if (other.gameObject.name == "EndLine_Back")
+        {
+            //Debug.Log("EndLine_Back has been touched");
+            isTouchingEndLine_Back = true;
+        }
+
+        if (other.gameObject.name == "Lobby_Right")
+        {
+           // Debug.Log("Lobby_Right has been touched");
+            isTouchingLobby_Right = true;
+        }
+
+        if (other.gameObject.name == "Lobby_Left")
+        {
+           // Debug.Log("Lobby_Left has been touched");
+            isTouchingLobby_Left = true;
+        }
+
+        //  Debug.Log("AI say : Other collider : " + other.gameObject.name);
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.gameObject.name == "EndLine_Back")
+        {
+            Debug.Log("EndLine has been removed");
+            isTouchingEndLine_Back = false;
+        }
+
+        if (other.gameObject.name == "Lobby_Right")
+        {
+            Debug.Log("Lobby_Right has been removed");
+            isTouchingLobby_Right = false;
+        }
+
+        if (other.gameObject.name == "Lobby_Left")
+        {
+            Debug.Log("Lobby_Left has been removed");
+            isTouchingLobby_Left = false;
+        }
+
+    }
+
+    // Update is called once per frame
+    void Update ()
+    {
 
         switch(aiStates)
         {
