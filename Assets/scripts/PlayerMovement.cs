@@ -8,6 +8,9 @@ public class PlayerMovement : MonoBehaviour
 	public float moveSpeed;
 	private float currentMovementValueX,currentMovementValueY;
 
+    //game vars
+    public bool hasTouchedAnyone;
+
 	void Awake()
 	{
 		instance = this;
@@ -20,7 +23,8 @@ public class PlayerMovement : MonoBehaviour
 
 	void Update () 
 	{
-		MovePlayer ();
+        BoundsCheck();
+        MovePlayer ();
 	}
 
 	void MovePlayer()
@@ -29,6 +33,37 @@ public class PlayerMovement : MonoBehaviour
 		currentMovementValueY = CrossPlatformInputManager.GetAxis ("Vertical") * moveSpeed * Time.deltaTime;
 		this.transform.Translate(currentMovementValueX, currentMovementValueY,0);
 	}
+
+    void BoundsCheck()
+    {
+        
+        //Endline_back check
+        if (transform.position.y > GameManager.field_EndLineBack_Limit)
+            transform.position = new Vector2(transform.position.x, GameManager.field_EndLineBack_Limit);
+
+
+        if (hasTouchedAnyone)
+        {
+            //bound check upto Left and right Endlines
+            if (transform.position.x > GameManager.field_EndLineRight_Limit)
+                transform.position = new Vector2(GameManager.field_EndLineRight_Limit, transform.position.y);
+
+            if (transform.position.x < GameManager.field_EndLineLeft_Limit)
+                transform.position = new Vector2(GameManager.field_EndLineLeft_Limit, transform.position.y);
+
+        }
+        else
+        {
+            //bound check within lobby
+            if (transform.position.x > GameManager.field_LobbyRight_Limit)
+                transform.position = new Vector2(GameManager.field_LobbyRight_Limit, transform.position.y);
+
+            if (transform.position.x < GameManager.field_LobbyLeft_Limit)
+                transform.position = new Vector2(GameManager.field_LobbyLeft_Limit, transform.position.y);
+        }
+
+    }
+
 
     void OnTriggerEnter2D(Collider2D other)
     {
