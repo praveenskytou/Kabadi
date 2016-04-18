@@ -2,28 +2,30 @@
 using System.Collections;
 
 
-public enum AIStates
+public enum AIStates3D
 {
     idle, 
     attack,
     defense
 }
 
-public class AIBehaviour : MonoBehaviour
+public class AIBehaviour3D : MonoBehaviour
 {
 
-    AIBehaviour instance = null;
+    AIBehaviour3D instance = null;
 
     public GameObject playerRef;
-    private Vector2 attackPosition;
-    public AIStates aiStates;
+    private Vector3 attackPosition;
+    public AIStates3D aiStates3D;
+    private Animator animator;
+    private Vector3 aiPrevPosition, aiPrevRotation;
 
     //ai coords : params
     private Vector3 startPosition;
     public float aiSafeDistance;
     public float aiVerticalMoveSpeed, aiHorizontalMoveSpeed;
     public float aiAttackSpeed;//it is always greater than normal speed
-    private float xpos, ypos;
+    private float xpos, zpos;
 
     //ai state change vars
     private float timeElapsed_StateChange;
@@ -44,13 +46,21 @@ public class AIBehaviour : MonoBehaviour
     {
         timeElapsed_StateChange = Time.time;
         timeElapsed_Evade = Time.time;
-        evadeToPosition = new Vector2(transform.position.x - 0.5f, transform.position.y);
+        aiEvadeDir = aiEvadeDirections[0];
+        evadeToPosition = new Vector3(transform.position.x - 0.5f, 0 , transform.position.z);
+        animator = this.GetComponent<Animator>();
+        aiPrevPosition = transform.position;
+        aiPrevRotation = transform.rotation.eulerAngles;
+
     }
 
 
     // Update is called once per frame
     void Update()
     {
+        aiPrevPosition = transform.position;
+        aiPrevRotation = transform.rotation.eulerAngles;
+
         boundsCheck();
 
         //Evasion change logic
@@ -59,49 +69,59 @@ public class AIBehaviour : MonoBehaviour
             aiEvadeDir = aiEvadeDirections[ Random.Range(0,aiEvadeDirections.Length-1) ];
 
             if (aiEvadeDir == aiEvadeDirections[0])//left
-                evadeToPosition = new Vector2(transform.position.x - 0.5f, transform.position.y);
+                evadeToPosition = new Vector3(transform.position.x - 0.5f, 0, transform.position.z);
             else
             if (aiEvadeDir == aiEvadeDirections[1])//right
-                evadeToPosition = new Vector2(transform.position.x + 0.5f, transform.position.y);
+                evadeToPosition = new Vector3(transform.position.x + 0.5f, 0, transform.position.z);
             else
             if (aiEvadeDir == aiEvadeDirections[2])//front
-                evadeToPosition = new Vector2(transform.position.x , transform.position.y-0.5f);
-
+                evadeToPosition = new Vector3(transform.position.x , 0, transform.position.z-0.5f);
 
             timeElapsed_Evade = Time.time;
         }
 
         performEvasion(evadeToPosition);
-
-
+        
         //State change logic
         if (Time.time - timeElapsed_StateChange > nextStateChangeDuration)
         {
-            if (aiStates == AIStates.defense)
-                aiStates = AIStates.attack;
+            if (aiStates3D == AIStates3D.defense)
+                aiStates3D = AIStates3D.attack;
             else
-                aiStates = AIStates.defense;
+                aiStates3D = AIStates3D.defense;
 
             attackPosition = playerRef.transform.position;//get the recent player pos
 
             timeElapsed_StateChange = Time.time;
         }
-
-
+     
         //If the player is nearer to AI
-        if (Vector2.Distance(playerRef.transform.position, this.transform.position) < aiSafeDistance)
+        if (Vector3.Distance(playerRef.transform.position, this.transform.position) < aiSafeDistance)
         {
-            switch (aiStates)
+            switch (aiStates3D)
             {
-                case AIStates.attack:
+                case AIStates3D.attack:
                     Attack();
                     break;
 
-                case AIStates.defense:
+                case AIStates3D.defense:
                     Defense();
                     break;
             }
         }
+
+        
+        if ( Vector3.Distance( aiPrevPosition , transform.position ) !=0 )
+        {
+            //animator.play
+            animator.SetBool("isMoving", true);
+        }
+        else
+        {
+            animator.SetBool("isMoving", false);
+        }
+
+        transform.LookAt(playerRef.transform);
     }
 
     private void Defense()
@@ -118,10 +138,10 @@ public class AIBehaviour : MonoBehaviour
             xpos = playerRef.transform.position.x ;//if front
 
 
-        ypos = playerRef.transform.position.y + aiSafeDistance;
+        zpos = playerRef.transform.position.z + aiSafeDistance;
 
         //movement 
-        transform.position = Vector3.MoveTowards(transform.position, new Vector2(xpos, ypos), moveStep);
+        transform.position = Vector3.MoveTowards(transform.position, new Vector3(xpos, 0, zpos), moveStep);
 
     }
 
@@ -135,12 +155,12 @@ public class AIBehaviour : MonoBehaviour
         if(Vector3.Distance(transform.position, attackPosition) < 1f)
         {
             //revert to defense state
-            aiStates = AIStates.defense;
+            aiStates3D = AIStates3D.defense;
         }
 
     }
 
-    private void performEvasion(Vector2 evadeToPosition)
+    private void performEvasion(Vector3 evadeToPosition)
     {
         if (transform.position.x > GameManager.field_LobbyLeft_Limit + 1  &&
             transform.position.x < GameManager.field_EndLineRight_Limit - 1)
@@ -156,7 +176,7 @@ public class AIBehaviour : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.name == "Player" && aiStates == AIStates.attack)
+        if (other.gameObject.name == "Player" && aiStates3D == AIStates3D.attack)
         {
             Debug.Log("AI caught the Player");
         }
@@ -166,21 +186,17 @@ public class AIBehaviour : MonoBehaviour
     {
 
         //Endline_back check
-        if (transform.position.y > GameManager.field_EndLineBack_Limit)
-            transform.position = new Vector2(transform.position.x, GameManager.field_EndLineBack_Limit);
+        if (transform.position.z > GameManager.field_EndLineBack_Limit)
+            transform.position = new Vector3(transform.position.x, 0, GameManager.field_EndLineBack_Limit);
 
-        if (transform.position.y < GameManager.field_MidLine_Limit)
-            transform.position = new Vector2(transform.position.x, GameManager.field_MidLine_Limit);
+        if (transform.position.z < GameManager.field_MidLine_Limit)
+            transform.position = new Vector3(transform.position.x, 0, GameManager.field_MidLine_Limit);
 
         if (transform.position.x > GameManager.field_LobbyRight_Limit)
-            transform.position = new Vector2(GameManager.field_LobbyRight_Limit, transform.position.y);
+            transform.position = new Vector3(GameManager.field_LobbyRight_Limit, 0, transform.position.z);
 
         if (transform.position.x < GameManager.field_LobbyLeft_Limit)
-            transform.position = new Vector2(GameManager.field_LobbyLeft_Limit, transform.position.y);
-
+            transform.position = new Vector3(GameManager.field_LobbyLeft_Limit, 0, transform.position.z);
 
     }
-
-
-
 }

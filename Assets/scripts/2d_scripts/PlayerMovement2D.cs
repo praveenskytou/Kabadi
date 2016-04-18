@@ -2,11 +2,12 @@
 using System.Collections;
 using UnityStandardAssets.CrossPlatformInput;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement2D : MonoBehaviour
 {
-	public static PlayerMovement instance = null;
+	public static PlayerMovement2D instance = null;
 	public float moveSpeed;
 	private float currentMovementValueX,currentMovementValueY;
+    private Animator animator;
 
     //game vars
     public bool hasTouchedAnyone;
@@ -18,10 +19,10 @@ public class PlayerMovement : MonoBehaviour
 		
 	void Start ()
 	{
-	
-	}
+        animator = this.GetComponent<Animator>();
+    }
 
-	void Update () 
+    void Update () 
 	{
         BoundsCheck();
         MovePlayer ();
@@ -32,7 +33,19 @@ public class PlayerMovement : MonoBehaviour
 		currentMovementValueX = CrossPlatformInputManager.GetAxis("Horizontal") * moveSpeed * Time.deltaTime;
 		currentMovementValueY = CrossPlatformInputManager.GetAxis ("Vertical") * moveSpeed * Time.deltaTime;
 		this.transform.Translate(currentMovementValueX, currentMovementValueY,0);
-	}
+
+        if (currentMovementValueX != 0 || currentMovementValueY != 0)
+        {
+            //animator.play
+            animator.SetBool("isMoving", true);
+        }
+        else
+        {
+            animator.SetBool("isMoving", false);
+        }
+
+
+    }
 
     void BoundsCheck()
     {
