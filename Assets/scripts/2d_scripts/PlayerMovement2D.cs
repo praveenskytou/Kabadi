@@ -104,7 +104,9 @@ public class PlayerMovement2D : MonoBehaviour
             if (other.gameObject.GetComponent<AIBehaviour2D>().currentAIState == AIStates2D.defense )
             {
                 other.gameObject.GetComponent<AIBehaviour2D>().hasTouchedByPlayer = true;
-                other.gameObject.GetComponent<AIBehaviour2D>().hasTouchedByPlayer
+                other.gameObject.GetComponent<SpriteRenderer>().material.SetColor("_Color", new Color(1f,0f,0f,0.6f) );
+                Debug.Log("Spec color changed");
+
             }
         }
 
