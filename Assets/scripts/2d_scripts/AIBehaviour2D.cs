@@ -22,7 +22,7 @@ public class AIBehaviour2D : MonoBehaviour
     private bool isTurnedRight, isTurnedLeft;
 
     //ai coords : params
-    private Vector3 startPosition;
+    private Vector3 initialPosition;
     public float aiSafeDistance;
     public float aiVerticalMoveSpeed, aiHorizontalMoveSpeed;
     public float aiAttackSpeed;//it is always greater than normal speed
@@ -49,6 +49,8 @@ public class AIBehaviour2D : MonoBehaviour
         timeElapsed_Evade = Time.time;
         evadeToPosition = new Vector2(transform.position.x - 0.5f, transform.position.y);
         animator = this.GetComponent<Animator>();
+
+        initialPosition = transform.position;
     }
 
 
@@ -62,28 +64,31 @@ public class AIBehaviour2D : MonoBehaviour
         boundsCheck();
         turnTowardsPlayer();
 
+        PerformEvasion();
+        PerformStateChange();
 
-        //Evasion change logic
-        if (Time.time - timeElapsed_Evade > nextEvadeStartDuration)
+        //Animation playback
+        if (Vector3.Distance(aiPrevPosition, transform.position) != 0)
         {
-            aiEvadeDir = aiEvadeDirections[ Random.Range(0,aiEvadeDirections.Length-1) ];
-
-            if (aiEvadeDir == aiEvadeDirections[0])//left
-                evadeToPosition = new Vector2(transform.position.x - 0.5f, transform.position.y);
-            else
-            if (aiEvadeDir == aiEvadeDirections[1])//right
-                evadeToPosition = new Vector2(transform.position.x + 0.5f, transform.position.y);
-            else
-            if (aiEvadeDir == aiEvadeDirections[2])//front
-                evadeToPosition = new Vector2(transform.position.x , transform.position.y-0.5f);
-
-
-            timeElapsed_Evade = Time.time;
+            animator.SetBool("isMoving", true);
+        }
+        else
+        {
+            animator.SetBool("isMoving", false);
         }
 
-        performEvasion(evadeToPosition);
+        //Check raid state 
+        if (GameManager.instRef.isRaidOver)
+        {
+            transform.position = initialPosition;
+            animator.SetBool("isMoving", false);
 
+        }
 
+    }
+
+    private void PerformStateChange()
+    {
         //State change logic
         if (Time.time - timeElapsed_StateChange > nextStateChangeDuration)
         {
@@ -112,20 +117,41 @@ public class AIBehaviour2D : MonoBehaviour
                     break;
             }
         }
-
-
-        if (Vector3.Distance(aiPrevPosition, transform.position) != 0)
-        {
-            //animator.play
-            animator.SetBool("isMoving", true);
-        }
-        else
-        {
-            animator.SetBool("isMoving", false);
-        }
-
-
     }
+
+
+    private void PerformEvasion()
+    {
+        //Evasion change logic
+        ///Set the direction to evade
+        if (Time.time - timeElapsed_Evade > nextEvadeStartDuration)
+        {
+            aiEvadeDir = aiEvadeDirections[Random.Range(0, aiEvadeDirections.Length - 1)];
+
+            if (aiEvadeDir == aiEvadeDirections[0])//left
+                evadeToPosition = new Vector2(transform.position.x - 0.5f, transform.position.y);
+            else
+            if (aiEvadeDir == aiEvadeDirections[1])//right
+                evadeToPosition = new Vector2(transform.position.x + 0.5f, transform.position.y);
+            else
+            if (aiEvadeDir == aiEvadeDirections[2])//front
+                evadeToPosition = new Vector2(transform.position.x, transform.position.y - 0.5f);
+
+            timeElapsed_Evade = Time.time;
+        }
+
+        //translate the object 
+        if (transform.position.x > GameManager.field_LobbyLeft_Limit + 1 &&
+              transform.position.x < GameManager.field_EndLineRight_Limit - 1)
+        {
+            //evade a bit
+            moveStep = 1 * Time.deltaTime;
+
+            transform.position = Vector3.MoveTowards(transform.position, evadeToPosition, moveStep);
+
+        }
+    }
+
 
     private void Defense()
     {
@@ -163,53 +189,23 @@ public class AIBehaviour2D : MonoBehaviour
 
     }
 
-    private void performEvasion(Vector2 evadeToPosition)
-    {
-        if (transform.position.x > GameManager.field_LobbyLeft_Limit + 1  &&
-            transform.position.x < GameManager.field_EndLineRight_Limit - 1)
-        {
-            //evade a bit
-            moveStep = 1 * Time.deltaTime;
-
-            transform.position = Vector3.MoveTowards(transform.position, evadeToPosition, moveStep);
-
-        }
-    }
-
     private void turnTowardsPlayer()
     {
-        if(playerRef.transform.position.x - transform.position.x > 3  && !isTurnedRight)//right
+        if(playerRef.transform.position.x - transform.position.x > 2  && !isTurnedRight)//right
         {
             transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z + 30f);
-            Debug.Log("Changed the angles");
+            //Debug.Log("Changed the angles");
             isTurnedRight = true;
             isTurnedLeft = false;
         }
         else
-        if (playerRef.transform.position.x - transform.position.x < -3  && !isTurnedLeft)//left
+        if (playerRef.transform.position.x - transform.position.x < - 2  && !isTurnedLeft)//left
         {
             transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z - 30f);
-            Debug.Log("Changed the angles");
+            //Debug.Log("Changed the angles");
             isTurnedLeft = true;
             isTurnedRight = false;
         }
-
-        /*
-        else
-        if ( (isTurnedLeft || isTurnedRight) &&  playerRef.transform.position.x - transform.position.x < 1 || playerRef.transform.position.x - transform.position.x > -1) //center
-        {
-
-            if(isTurnedRight)
-                transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z -30f );
-            else
-            if(isTurnedLeft)
-                transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z + 30f);
-
-            Debug.Log("Changed the angles");
-
-        }
-
-        */
 
     }
 

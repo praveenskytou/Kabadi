@@ -8,6 +8,7 @@ public class PlayerMovement2D : MonoBehaviour
 	public float moveSpeed;
 	private float currentMovementValueX,currentMovementValueY;
     private Animator animator;
+    private Vector3 initialPosition;
 
     //game vars
     public bool hasTouchedAnyone;
@@ -20,13 +21,23 @@ public class PlayerMovement2D : MonoBehaviour
 	void Start ()
 	{
         animator = this.GetComponent<Animator>();
+        initialPosition = this.transform.position;
     }
 
     void Update () 
 	{
         BoundsCheck();
-        MovePlayer ();
-	}
+
+        if(GameManager.instRef.isRaidOver)
+        {
+            transform.position = initialPosition;
+            animator.SetBool("isMoving", false);
+        }
+        else
+        {
+            MovePlayer();
+        }
+    }
 
 	void MovePlayer()
 	{
@@ -54,6 +65,9 @@ public class PlayerMovement2D : MonoBehaviour
         if (transform.position.y > GameManager.field_EndLineBack_Limit)
             transform.position = new Vector2(transform.position.x, GameManager.field_EndLineBack_Limit);
 
+        //Midline check
+        if (transform.position.y < GameManager.field_MidLine_Limit)
+            transform.position = new Vector2(transform.position.x, GameManager.field_MidLine_Limit);
 
         if (hasTouchedAnyone)
         {

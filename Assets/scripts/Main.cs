@@ -23,4 +23,9 @@ public class Main : MonoBehaviour {
     {
         SceneManager.LoadScene("3dscene");
     }
+
+    public void loadMainScene()
+    {
+        SceneManager.LoadScene("main");
+    }
 }
