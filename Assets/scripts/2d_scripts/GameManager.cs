@@ -5,6 +5,8 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour {
 
     public static GameManager instRef;
+    private AudioSource audio;
+
 
     //Game time vars
     public int raidTimeLimit = 30;
@@ -40,10 +42,11 @@ public class GameManager : MonoBehaviour {
         instRef = this;
         elapsedRaidTime = Time.time;
         currentRaidTimeCount = raidTimeLimit;
+        audio = GetComponent<AudioSource>();
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update () {
         
 
         if (isRoundStarted)
@@ -78,6 +81,7 @@ public class GameManager : MonoBehaviour {
             isRoundStarted = false;
             elapsedRoundInterval = Time.time;
             disableEliminatedEnemies();//Disable the eliminated enemies
+            audio.Play();
         }
 
         if (Time.time - elapsedRaidTime > 1)

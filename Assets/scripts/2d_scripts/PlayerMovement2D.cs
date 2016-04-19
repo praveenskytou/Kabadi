@@ -9,6 +9,7 @@ public class PlayerMovement2D : MonoBehaviour
 	private float currentMovementValueX,currentMovementValueY;
     private Animator animator;
     private Vector3 initialPosition;
+    private AudioSource audio;
 
     //game vars
     public bool hasTouchedAnyone;
@@ -22,6 +23,8 @@ public class PlayerMovement2D : MonoBehaviour
 	{
         animator = this.GetComponent<Animator>();
         initialPosition = this.transform.position;
+        audio = GetComponent<AudioSource>();
+        
     }
 
     void Update () 
@@ -103,6 +106,7 @@ public class PlayerMovement2D : MonoBehaviour
         {
             if (other.gameObject.GetComponent<AIBehaviour2D>().currentAIState == AIStates2D.defense )
             {
+                audio.Play();
                 other.gameObject.GetComponent<AIBehaviour2D>().hasTouchedByPlayer = true;
                 other.gameObject.GetComponent<SpriteRenderer>().material.SetColor("_Color", new Color(1f,0f,0f,0.6f) );
                 Debug.Log("Spec color changed");
