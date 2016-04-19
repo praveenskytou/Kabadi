@@ -193,7 +193,11 @@ public class AIBehaviour2D : MonoBehaviour
     {
         if(playerRef.transform.position.x - transform.position.x > 2  && !isTurnedRight)//right
         {
-            transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z + 30f);
+            if(isTurnedLeft)
+                transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z + 60f);
+            else
+                transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z + 30f);
+
             //Debug.Log("Changed the angles");
             isTurnedRight = true;
             isTurnedLeft = false;
@@ -201,7 +205,12 @@ public class AIBehaviour2D : MonoBehaviour
         else
         if (playerRef.transform.position.x - transform.position.x < - 2  && !isTurnedLeft)//left
         {
-            transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z - 30f);
+
+            if(isTurnedRight)
+                transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z - 60f);
+            else
+                transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z - 30f);
+
             //Debug.Log("Changed the angles");
             isTurnedLeft = true;
             isTurnedRight = false;
