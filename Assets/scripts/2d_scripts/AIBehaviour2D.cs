@@ -42,6 +42,7 @@ public class AIBehaviour2D : MonoBehaviour
 
     //misc params
     private float moveStep;
+    public Color aiDefaultColor;
 
 	// Use this for initialization
 	void Start ()
@@ -52,6 +53,7 @@ public class AIBehaviour2D : MonoBehaviour
         animator = this.GetComponent<Animator>();
 
         initialPosition = transform.position;
+        aiDefaultColor = this.GetComponent<SpriteRenderer>().material.GetColor("_Color");
     }
 
 

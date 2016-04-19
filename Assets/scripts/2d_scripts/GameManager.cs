@@ -107,6 +107,7 @@ public class GameManager : MonoBehaviour {
     void reEnableAllEnemies()
     {
         int enemiesOutCount = 0;
+        Material material;
 
         //get the enemy count;
         for (int i = 0; i < aiPlayers.Length; i++)
@@ -126,6 +127,11 @@ public class GameManager : MonoBehaviour {
                 {
                     aiPlayers[i].SetActive(true);
                     aiPlayers[i].transform.position = aiPlayers[i].GetComponent<AIBehaviour2D>().initialPosition;
+                    material = aiPlayers[i].GetComponent<SpriteRenderer>().material;
+
+                    //reset color to default 
+                    material.SetColor("_Color", aiPlayers[i].GetComponent<AIBehaviour2D>().aiDefaultColor);
+
                 }
             }
         }
