@@ -30,16 +30,21 @@ public class GameManager : MonoBehaviour {
     public Text t_timer;
 
     //Game state vars
-    public bool isRaidOver, isRoundStarted;
+    public bool isRaidOver, isRoundStarted, isGameWon;
+
+    //AI in the scene
+    public GameObject[] aiPlayers;
 
 	// Use this for initialization
 	void Start () {
         instRef = this;
         elapsedRaidTime = Time.time;
+        currentRaidTimeCount = raidTimeLimit;
     }
 	
 	// Update is called once per frame
 	void Update () {
+        
 
         if (isRoundStarted)
         {
@@ -51,6 +56,8 @@ public class GameManager : MonoBehaviour {
             //start the next round in N seconds
             if(Time.time - elapsedRoundInterval > roundIntervalTimeLimit)
             {
+
+                reEnableAllEnemies();//re-enable if all enemies are out
 
                 //reset all vars
                 currentRaidTimeCount = raidTimeLimit;
@@ -70,6 +77,7 @@ public class GameManager : MonoBehaviour {
             isRaidOver = true;
             isRoundStarted = false;
             elapsedRoundInterval = Time.time;
+            disableEliminatedEnemies();//Disable the eliminated enemies
         }
 
         if (Time.time - elapsedRaidTime > 1)
@@ -84,5 +92,43 @@ public class GameManager : MonoBehaviour {
         t_timer.text = "Timer : " + currentRaidTimeCount;
     }
 
+    void disableEliminatedEnemies()
+    {
+        for(int i=0; i< aiPlayers.Length; i++)
+        {
+            if(aiPlayers[i].GetComponent<AIBehaviour2D>().hasTouchedByPlayer)
+            {
+                aiPlayers[i].SetActive(false);
+            }
+        }
 
+    }
+
+    void reEnableAllEnemies()
+    {
+        int enemiesOutCount = 0;
+
+        //get the enemy count;
+        for (int i = 0; i < aiPlayers.Length; i++)
+        {
+            if ( aiPlayers[i].GetComponent<AIBehaviour2D>().hasTouchedByPlayer )
+            {
+                enemiesOutCount++; 
+            }
+        }
+
+        //re enable them
+        if(enemiesOutCount == aiPlayers.Length)
+        {
+            for (int i = 0; i < aiPlayers.Length; i++)
+            {
+                if (aiPlayers[i].GetComponent<AIBehaviour2D>().hasTouchedByPlayer)
+                {
+                    aiPlayers[i].SetActive(true);
+                    aiPlayers[i].transform.position = aiPlayers[i].GetComponent<AIBehaviour2D>().initialPosition;
+                }
+            }
+        }
+
+    }
 }

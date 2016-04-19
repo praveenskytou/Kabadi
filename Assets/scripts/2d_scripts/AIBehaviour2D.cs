@@ -16,13 +16,14 @@ public class AIBehaviour2D : MonoBehaviour
 
     public GameObject playerRef;
     private Vector2 attackPosition;
-    public AIStates2D aiStates;
+    public AIStates2D currentAIState;
     private Animator animator;
     private Vector3 aiPrevPosition, aiPrevRotation;
-    private bool isTurnedRight, isTurnedLeft;
+    private bool isTurnedRight, isTurnedLeft, isFacingCenter;
+    public bool hasTouchedByPlayer;
 
     //ai coords : params
-    private Vector3 initialPosition;
+    public Vector3 initialPosition;
     public float aiSafeDistance;
     public float aiVerticalMoveSpeed, aiHorizontalMoveSpeed;
     public float aiAttackSpeed;//it is always greater than normal speed
@@ -92,10 +93,10 @@ public class AIBehaviour2D : MonoBehaviour
         //State change logic
         if (Time.time - timeElapsed_StateChange > nextStateChangeDuration)
         {
-            if (aiStates == AIStates2D.defense)
-                aiStates = AIStates2D.attack;
+            if (currentAIState == AIStates2D.defense)
+                currentAIState = AIStates2D.attack;
             else
-                aiStates = AIStates2D.defense;
+                currentAIState = AIStates2D.defense;
 
             attackPosition = playerRef.transform.position;//get the recent player pos
 
@@ -106,7 +107,7 @@ public class AIBehaviour2D : MonoBehaviour
         //If the player is nearer to AI
         if (Vector2.Distance(playerRef.transform.position, this.transform.position) < aiSafeDistance)
         {
-            switch (aiStates)
+            switch (currentAIState)
             {
                 case AIStates2D.attack:
                     Attack();
@@ -118,7 +119,6 @@ public class AIBehaviour2D : MonoBehaviour
             }
         }
     }
-
 
     private void PerformEvasion()
     {
@@ -184,7 +184,7 @@ public class AIBehaviour2D : MonoBehaviour
         if(Vector3.Distance(transform.position, attackPosition) < 1f)
         {
             //revert to defense state
-            aiStates = AIStates2D.defense;
+            currentAIState = AIStates2D.defense;
         }
 
     }
@@ -201,6 +201,8 @@ public class AIBehaviour2D : MonoBehaviour
             //Debug.Log("Changed the angles");
             isTurnedRight = true;
             isTurnedLeft = false;
+            isFacingCenter = false;
+
         }
         else
         if (playerRef.transform.position.x - transform.position.x < - 2  && !isTurnedLeft)//left
@@ -214,13 +216,26 @@ public class AIBehaviour2D : MonoBehaviour
             //Debug.Log("Changed the angles");
             isTurnedLeft = true;
             isTurnedRight = false;
+            isFacingCenter = false;
+
+        }
+        else
+        if (playerRef.transform.position.x - transform.position.x > -2 && playerRef.transform.position.x - transform.position.x < 2 && !isFacingCenter)//for centre view
+        {
+
+            transform.eulerAngles = new Vector3(0,0, 160);
+
+            //Debug.Log("Changed the angles");
+            isFacingCenter = true;
+            isTurnedLeft = false;
+            isTurnedRight = false;
         }
 
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.name == "Player" && aiStates == AIStates2D.attack)
+        if (other.gameObject.name == "Player" && currentAIState == AIStates2D.attack)
         {
             Debug.Log("AI caught the Player");
         }
@@ -242,9 +257,5 @@ public class AIBehaviour2D : MonoBehaviour
         if (transform.position.x < GameManager.field_LobbyLeft_Limit)
             transform.position = new Vector2(GameManager.field_LobbyLeft_Limit, transform.position.y);
 
-
     }
-
-
-
 }

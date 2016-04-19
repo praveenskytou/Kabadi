@@ -54,8 +54,6 @@ public class PlayerMovement2D : MonoBehaviour
         {
             animator.SetBool("isMoving", false);
         }
-
-
     }
 
     void BoundsCheck()
@@ -94,12 +92,22 @@ public class PlayerMovement2D : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if(other.gameObject.name == "BaulkLine")
+
+        if (other.gameObject.name == "BaulkLine")
         {
             Debug.Log("BaulkLine has been touched");
         }
 
-        //Debug.Log("Other collider : " + other.gameObject.name);
+        //Debug.Log("Player touched : " + other.gameObject.name);
+        if (other.gameObject.name == "Enemy_2D")
+        {
+            if (other.gameObject.GetComponent<AIBehaviour2D>().currentAIState == AIStates2D.defense )
+            {
+                other.gameObject.GetComponent<AIBehaviour2D>().hasTouchedByPlayer = true;
+                other.gameObject.GetComponent<AIBehaviour2D>().hasTouchedByPlayer
+            }
+        }
+
     }
 
 }
