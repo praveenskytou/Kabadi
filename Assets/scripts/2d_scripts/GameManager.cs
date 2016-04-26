@@ -29,16 +29,20 @@ public class GameManager : MonoBehaviour {
     private int currentRaidTimeCount;
     private float elapsedRoundInterval;
     private float elapsedRaidTime;
-    public Text t_timer;
+    private float elapsedUIMessageTime;
 
     //Game state vars
-    public bool isRaidOver, isRoundStarted, isGameWon;
+    public bool isRaidOver, isRoundStarted, isGameWon, isUIMessageSet;
 
     //AI in the scene
     public GameObject[] aiPlayers;
 
-	// Use this for initialization
-	void Start () {
+    //UI vars
+    public Text t_timer;
+    public Text t_message;
+
+    // Use this for initialization
+    void Start () {
         instRef = this;
         elapsedRaidTime = Time.time;
         currentRaidTimeCount = raidTimeLimit;
@@ -52,13 +56,13 @@ public class GameManager : MonoBehaviour {
         if (isRoundStarted)
         {
             raidTimeCheck();
-
         }
         else
         {
             //start the next round in N seconds
             if(Time.time - elapsedRoundInterval > roundIntervalTimeLimit)
             {
+                setUIMessage("");//reset the message text
 
                 reEnableAllEnemies();//re-enable if all enemies are out
 
@@ -68,18 +72,28 @@ public class GameManager : MonoBehaviour {
                 isRoundStarted = true;
                 isRaidOver = false;
                 Debug.Log("Next round started");
+               
             }
+        }
+
+        //reset UI message after 2 seconds
+        if(isUIMessageSet && Time.time - elapsedUIMessageTime > 2f)
+        {
+            setUIMessage("");
+            isUIMessageSet = false;
+            Debug.Log("Message resetted");
         }
     }
 
     void raidTimeCheck()
     {
-
+        //if the round gets over
         if (currentRaidTimeCount <= 0)
         {
             isRaidOver = true;
             isRoundStarted = false;
             elapsedRoundInterval = Time.time;
+            setUIMessage("Round over");
             disableEliminatedEnemies();//Disable the eliminated enemies
             audio.Play();
         }
@@ -140,5 +154,14 @@ public class GameManager : MonoBehaviour {
             }
         }
 
+    }
+
+
+    public void setUIMessage(string message)
+    {
+        t_message.text = message;
+        isUIMessageSet = true;
+        elapsedUIMessageTime = Time.time;
+        Debug.Log("Message received : " + message);
     }
 }

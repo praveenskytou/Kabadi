@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityStandardAssets.CrossPlatformInput;
+using UnityEngine.UI;
 
 public class PlayerMovement2D : MonoBehaviour
 {
@@ -40,6 +41,8 @@ public class PlayerMovement2D : MonoBehaviour
         {
             MovePlayer();
         }
+
+
     }
 
 	void MovePlayer()
@@ -110,6 +113,7 @@ public class PlayerMovement2D : MonoBehaviour
                 other.gameObject.GetComponent<AIBehaviour2D>().hasTouchedByPlayer = true;
                 other.gameObject.GetComponent<SpriteRenderer>().material.SetColor("_Color", new Color(1f,0f,0f,0.6f) );
                 Debug.Log("Spec color changed");
+                GameManager.instRef.setUIMessage("OUT !");
 
             }
         }
